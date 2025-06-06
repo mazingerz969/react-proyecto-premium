@@ -1,0 +1,471 @@
+.App {
+  text-align: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.App-header {
+  padding: 2rem 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  margin-bottom: 2rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.App-header h1 {
+  margin: 0 0 1rem 0;
+  font-size: 2.5rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.App-header p {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+/* Selector de estado de ánimo */
+.mood-selector {
+  margin-top: 1rem;
+}
+
+.mood-selector p {
+  margin-bottom: 1rem;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.mood-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.mood-btn {
+  padding: 0.75rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+}
+
+.mood-btn:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mood-btn.active {
+  border-color: white;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+}
+
+.App-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+/* Secciones mejoradas */
+.contador-section,
+.tareas-section,
+.diversion-section,
+.info-section {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 2rem;
+  border-radius: 20px;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.contador-section h2,
+.tareas-section h2,
+.diversion-section h2,
+.info-section h2 {
+  margin-top: 0;
+  color: #fff;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+
+/* Contador mejorado */
+.contador {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.numero {
+  font-size: 3.5rem;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  margin-left: 15px;
+  display: inline-block;
+}
+
+.botones-avanzados {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Tareas mejoradas */
+.agregar-tarea-avanzada {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.agregar-tarea-avanzada input {
+  padding: 1rem 1.5rem;
+  border: none;
+  border-radius: 25px;
+  font-size: 1rem;
+  min-width: 300px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #333;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.agregar-tarea-avanzada input:focus {
+  outline: none;
+  background: white;
+  transform: translateY(-2px);
+}
+
+.lista-tareas-avanzada {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tarea-item-avanzada {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.tarea-item-avanzada::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transform: translateX(-100%);
+  transition: transform 0.6s ease;
+}
+
+.tarea-item-avanzada:hover::before {
+  transform: translateX(100%);
+}
+
+/* Zona de diversión */
+.diversiones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.efecto-card,
+.stats-card {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2rem;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.efecto-card h3,
+.stats-card h3 {
+  margin-top: 0;
+  color: #ffd700;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.efecto-botones {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.stats-content {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+/* Información actualizada */
+.info-cards-avanzadas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.tech-card,
+.features-card {
+  background: rgba(255, 255, 255, 0.2);
+  padding: 2rem;
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  perspective: 1000px;
+}
+
+.tech-card h3,
+.features-card h3 {
+  margin-top: 0;
+  color: #ffd700;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.tech-card ul,
+.features-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.tech-card li,
+.features-card li {
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+}
+
+.tech-card li:hover,
+.features-card li:hover {
+  color: #ffd700;
+  transform: translateX(10px);
+}
+
+.tech-card li:last-child,
+.features-card li:last-child {
+  border-bottom: none;
+}
+
+/* Footer mejorado */
+.App-footer {
+  margin-top: 3rem;
+  padding: 2rem 1rem;
+  background: rgba(0, 0, 0, 0.3);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.App-footer p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  font-size: 1.1rem;
+}
+
+/* Efectos especiales */
+.App::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.15"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="90" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  pointer-events: none;
+  z-index: 1;
+}
+
+.App > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Animaciones personalizadas */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  0%, 100% { text-shadow: 0 0 5px rgba(255, 215, 0, 0.5); }
+  50% { text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.6); }
+}
+
+.numero {
+  animation: glow 2s ease-in-out infinite;
+}
+
+/* Responsive mejorado */
+@media (max-width: 768px) {
+  .App-header h1 {
+    font-size: 2rem;
+    text-align: center;
+  }
+  
+  .App-main {
+    padding: 0 0.5rem;
+    gap: 2rem;
+  }
+  
+  .contador-section,
+  .tareas-section,
+  .diversion-section,
+  .info-section {
+    padding: 1.5rem;
+  }
+  
+  .botones-avanzados {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .agregar-tarea-avanzada {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .agregar-tarea-avanzada input {
+    min-width: 250px;
+  }
+  
+  .numero {
+    font-size: 2.5rem;
+  }
+  
+  .mood-buttons {
+    justify-content: center;
+  }
+  
+  .mood-btn {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .diversiones {
+    grid-template-columns: 1fr;
+  }
+  
+  .info-cards-avanzadas {
+    grid-template-columns: 1fr;
+  }
+  
+  .tarea-item-avanzada {
+    padding: 1rem 1.5rem;
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .App-header {
+    padding: 1.5rem 0.5rem;
+  }
+  
+  .App-header h1 {
+    font-size: 1.5rem;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .contador-section,
+  .tareas-section,
+  .diversion-section,
+  .info-section {
+    padding: 1rem;
+  }
+  
+  .agregar-tarea-avanzada input {
+    min-width: 200px;
+  }
+}
+
+/* Estilos para Material-UI personalizados */
+.MuiButton-root {
+  text-transform: none !important;
+  font-weight: 600 !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.MuiButton-root:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3) !important;
+}
+
+.MuiFab-root {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease !important;
+}
+
+.MuiFab-root:hover {
+  transform: translateY(-3px) scale(1.1) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3) !important;
+}
+
+.MuiChip-root {
+  font-weight: 500 !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.MuiBadge-badge {
+  font-size: 1.2rem !important;
+} 
