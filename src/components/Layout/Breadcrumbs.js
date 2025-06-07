@@ -219,6 +219,7 @@ const Breadcrumbs = ({ currentPath, currentTitle }) => {
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.2 }}
+                style={{ pointerEvents: 'none' }}
               >
                 <Chip
                   icon={<IoSparkles size={14} />}
@@ -231,7 +232,8 @@ const Breadcrumbs = ({ currentPath, currentTitle }) => {
                     fontWeight: 500,
                     '& .MuiChip-icon': {
                       color: 'white'
-                    }
+                    },
+                    cursor: 'default'
                   }}
                 />
               </motion.div>
@@ -239,6 +241,7 @@ const Breadcrumbs = ({ currentPath, currentTitle }) => {
               <motion.div
                 whileHover={{ scale: 1.1 }}
                 transition={{ duration: 0.2 }}
+                style={{ pointerEvents: 'none' }}
               >
                 <Chip
                   label="Premium"
@@ -248,7 +251,8 @@ const Breadcrumbs = ({ currentPath, currentTitle }) => {
                     color: 'white',
                     border: '1px solid rgba(255,255,255,0.2)',
                     fontWeight: 600,
-                    fontSize: '0.7rem'
+                    fontSize: '0.7rem',
+                    cursor: 'default'
                   }}
                 />
               </motion.div>

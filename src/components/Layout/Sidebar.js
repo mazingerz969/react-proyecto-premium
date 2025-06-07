@@ -71,60 +71,54 @@ const Sidebar = ({
       description: 'Vista general'
     },
     {
-      text: 'Contador',
-      reactIcon: FaCalculator,
-      path: '/contador',
+      text: 'Perfil',
+      reactIcon: FaUser,
+      path: '/profile',
       color: '#ff6b6b',
-      description: 'Contador dinámico',
-      badge: '🔥'
+      description: 'Gestión de perfil',
+      badge: '👤'
     },
     {
-      text: 'Tareas',
-      reactIcon: FaTasks,
-      path: '/tareas',
+      text: 'Analytics',
+      reactIcon: FaChartBar,
+      path: '/analytics',
       color: '#4ecdc4',
-      description: 'Lista de tareas',
-      badge: '✅'
+      description: 'Métricas y datos',
+      badge: '📊'
     },
     {
-      text: 'Diversión',
-      reactIcon: FaGamepad,
-      path: '/diversion',
+      text: 'Proyectos',
+      reactIcon: FaTasks,
+      path: '/projects',
       color: '#45b7d1',
-      description: 'Zona de juegos'
+      description: 'Gestión de proyectos'
     },
     {
-      text: 'Información',
-      reactIcon: FaInfoCircle,
-      path: '/info',
+      text: 'Equipo',
+      reactIcon: FaHeart,
+      path: '/team',
       color: '#f39c12',
-      description: 'Detalles del proyecto'
+      description: 'Gestión de equipo'
+    },
+    {
+      text: 'Configuración',
+      reactIcon: FaCog,
+      path: '/settings',
+      color: '#9b59b6',
+      description: 'Configuración'
+    },
+    {
+      text: 'APIs Reales',
+      reactIcon: IoStatsChart,
+      path: '/dashboard-api',
+      color: '#667eea',
+      description: 'Dashboard con datos reales',
+      badge: '🌐'
     }
   ];
 
-  // Secciones expandibles
-  const expandableSections = [
-    {
-      key: 'analytics',
-      title: 'Analíticas',
-      icon: IoStatsChart,
-      items: [
-        { text: 'Estadísticas', icon: BsGraphUp, path: '/stats', color: '#e74c3c' },
-        { text: 'Reportes', icon: FaChartBar, path: '/reports', color: '#9b59b6' },
-        { text: 'Métricas', icon: IoTrendingUp, path: '/metrics', color: '#3498db' }
-      ]
-    },
-    {
-      key: 'settings',
-      title: 'Configuración',
-      icon: BsGear,
-      items: [
-        { text: 'Preferencias', icon: FaCog, path: '/preferences', color: '#95a5a6' },
-        { text: 'Perfil', icon: BsPersonCircle, path: '/profile', color: '#e67e22' },
-        { text: 'Notificaciones', icon: IoNotifications, path: '/notifications', color: '#1abc9c' }
-      ]
-    }
-  ];
+  // Secciones expandibles (removidas temporalmente)
+  const expandableSections = [];
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -134,9 +128,15 @@ const Sidebar = ({
   };
 
   const handleNavigation = (path, text) => {
+    // Navegar usando React Router
+    navigate(path);
+    
+    // Llamar callback si existe
     if (onNavigate) {
       onNavigate(path, text);
     }
+    
+    // Cerrar sidebar en móvil
     if (variant === 'temporary') {
       onClose();
     }
@@ -177,6 +177,7 @@ const Sidebar = ({
 
   const renderMenuItem = (item, index) => {
     const ReactIcon = item.reactIcon;
+    const isActive = location.pathname === item.path;
 
     return (
       <motion.div
@@ -203,7 +204,10 @@ const Sidebar = ({
                 px: 2.5,
                 borderRadius: '12px',
                 margin: '4px 8px',
-                border: '2px solid transparent',
+                border: isActive ? `2px solid ${item.color}` : '2px solid transparent',
+                background: isActive 
+                  ? `linear-gradient(45deg, ${item.color}20, ${item.color}30)`
+                  : 'transparent',
                 '&:hover': {
                   background: `linear-gradient(45deg, ${item.color}15, ${item.color}25)`,
                   transform: 'translateX(4px)',

@@ -1,24 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaRocket, FaHeart, FaPlus, FaMinus, FaRedo, FaTrash, 
-  FaStar, FaCheck, FaFire, FaGift, FaMagic 
+  FaStar, FaCheck, FaFire, FaGift, FaMagic, FaCalculator, FaClock, FaQrcode, FaCloud, FaQuoteLeft, FaChartLine, FaSync, FaBitcoin, FaNewspaper
 } from 'react-icons/fa';
 import { 
   IoSparkles, IoThunderstorm, IoColorPalette, 
-  IoHappy, IoSad, IoHome 
+  IoHappy, IoSad, IoHome, IoStatsChart, IoRefresh, IoSettings, IoTrendingUp, IoTrendingDown
 } from 'react-icons/io5';
 import { 
   BsLightning, BsHeart, BsStars, BsEmojiSunglasses,
   BsEmojiLaughing, BsEmojiWink 
 } from 'react-icons/bs';
-import { Button, Chip, Badge, Fab, IconButton } from '@mui/material';
+import { Button, Chip, Badge, Fab, IconButton, Box, Grid, Card, CardContent, Typography, LinearProgress, TextField } from '@mui/material';
 import { Favorite, Add, Remove, Refresh, Delete, Star } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 import Confetti from 'react-confetti';
 import AOS from 'aos';
 import 'aos/dist/aos.css';
 import '../App.css';
+
+// Importar servicios
+import apiService from '../services/apiService';
+import storageService from '../services/storageService';
 
 function Dashboard() {
   const [contador, setContador] = useState(0);
@@ -30,6 +34,56 @@ function Dashboard() {
   ]);
   const [showConfetti, setShowConfetti] = useState(false);
   const [mood, setMood] = useState('happy');
+
+  // Nuevas funcionalidades para el Dashboard
+  const [showCalculator, setShowCalculator] = useState(false);
+  const [calculatorResult, setCalculatorResult] = useState('0');
+  const [calculatorInput, setCalculatorInput] = useState('');
+  
+  const [qrText, setQrText] = useState('https://react-proyecto-premium.vercel.app');
+  const [showQRGenerator, setShowQRGenerator] = useState(false);
+  
+  const [pomodoroTime, setPomodoroTime] = useState(25 * 60); // 25 minutos
+  const [pomodoroActive, setPomodoroActive] = useState(false);
+  const [pomodoroType, setPomodoroType] = useState('work'); // work, break
+  
+  const [weather, setWeather] = useState({
+    city: 'Madrid',
+    temperature: 22,
+    condition: 'Soleado',
+    humidity: 65,
+    wind: 12
+  });
+
+  const [quotes] = useState([
+    "El código es poesía escrita en lógica. 💻",
+    "Los errores son las escaleras hacia el éxito. 🚀",
+    "Cada línea de código es un paso hacia la innovación. ✨",
+    "La persistencia convierte lo imposible en inevitable. 💪",
+    "Hoy es un gran día para crear algo increíble. 🎯"
+  ]);
+  const [currentQuote, setCurrentQuote] = useState(0);
+
+  // Estados de carga y actualización
+  const [loading, setLoading] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(null);
+  const [autoRefresh, setAutoRefresh] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(300000); // 5 minutos
+
+  // Estados de datos
+  const [weatherData, setWeatherData] = useState(null);
+  const [cryptoData, setCryptoData] = useState([]);
+  const [newsData, setNewsData] = useState([]);
+  const [quoteData, setQuoteData] = useState(null);
+  const [userPreferences, setUserPreferences] = useState(null);
+
+  // Estados de estadísticas del sistema
+  const [systemStats, setSystemStats] = useState({
+    performance: 95,
+    memory: 68,
+    storage: 45,
+    network: 88
+  });
 
   // Inicializar AOS para animaciones de scroll
   useEffect(() => {
@@ -117,6 +171,174 @@ function Dashboard() {
     toast(moods[newMood].text, { icon: moods[newMood].emoji });
   };
 
+  // Timer del Pomodoro
+  useEffect(() => {
+    let interval = null;
+    if (pomodoroActive && pomodoroTime > 0) {
+      interval = setInterval(() => {
+        setPomodoroTime(time => time - 1);
+      }, 1000);
+    } else if (pomodoroTime === 0) {
+      setPomodoroActive(false);
+      if (pomodoroType === 'work') {
+        toast.success('¡Tiempo de descanso! 🎉', { icon: '☕' });
+        setPomodoroType('break');
+        setPomodoroTime(5 * 60); // 5 minutos de descanso
+      } else {
+        toast.success('¡Volver al trabajo! 💪', { icon: '🚀' });
+        setPomodoroType('work');
+        setPomodoroTime(25 * 60); // 25 minutos de trabajo
+      }
+      celebrar();
+    }
+    return () => clearInterval(interval);
+  }, [pomodoroActive, pomodoroTime, pomodoroType]);
+
+  // Cambiar frase motivacional cada 30 segundos
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentQuote(prev => (prev + 1) % quotes.length);
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [quotes.length]);
+
+  // Funciones de la calculadora
+  const handleCalculatorInput = (value) => {
+    try {
+      if (value === '=') {
+        try {
+          const result = eval(calculatorInput);
+          setCalculatorResult(result.toString());
+          setCalculatorInput(result.toString());
+          toast.success(`Resultado: ${result}`, { icon: '🧮' });
+        } catch (error) {
+          setCalculatorResult('Error');
+          setCalculatorInput('');
+          toast.error('Error en el cálculo', { icon: '❌' });
+        }
+      } else if (value === 'C') {
+        setCalculatorResult('0');
+        setCalculatorInput('');
+      } else if (value === '⌫') {
+        setCalculatorInput(prev => prev.slice(0, -1) || '0');
+        setCalculatorResult(calculatorInput.slice(0, -1) || '0');
+      } else {
+        const newInput = calculatorInput === '0' ? value : calculatorInput + value;
+        setCalculatorInput(newInput);
+        setCalculatorResult(newInput);
+      }
+    } catch (error) {
+      toast.error('Error en la calculadora', { icon: '❌' });
+    }
+  };
+
+  const startPomodoro = () => {
+    setPomodoroActive(!pomodoroActive);
+    toast.success(pomodoroActive ? 'Pomodoro pausado' : `Pomodoro iniciado - ${pomodoroType === 'work' ? 'Trabajo' : 'Descanso'}`, {
+      icon: pomodoroActive ? '⏸️' : '⏱️'
+    });
+  };
+
+  const resetPomodoro = () => {
+    setPomodoroActive(false);
+    setPomodoroTime(25 * 60);
+    setPomodoroType('work');
+    toast.success('Pomodoro reiniciado', { icon: '🔄' });
+  };
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const generateQR = () => {
+    if (qrText.trim()) {
+      toast.success('Código QR generado! 📱', { icon: '✅' });
+    } else {
+      toast.error('Ingresa un texto o URL', { icon: '❌' });
+    }
+  };
+
+  // Componente QR Generator simple
+  const QRDisplay = ({ text }) => (
+    <Box sx={{
+      width: 150,
+      height: 150,
+      background: 'white',
+      borderRadius: 2,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      margin: '0 auto',
+      border: '2px solid rgba(255,255,255,0.2)'
+    }}>
+      <Typography sx={{ color: 'black', fontSize: '0.7rem', textAlign: 'center', p: 1 }}>
+        QR: {text ? text.substring(0, 20) : 'texto'}...
+      </Typography>
+    </Box>
+  );
+
+  // Componente Calculadora
+  const Calculator = () => (
+    <Box sx={{
+      background: 'rgba(255,255,255,0.1)',
+      borderRadius: 2,
+      p: 2,
+      backdropFilter: 'blur(10px)'
+    }}>
+      <Box sx={{
+        background: 'rgba(0,0,0,0.3)',
+        borderRadius: 1,
+        p: 2,
+        mb: 2,
+        textAlign: 'right'
+      }}>
+        <Typography variant="h4" sx={{ color: 'white', fontFamily: 'monospace' }}>
+          {calculatorResult}
+        </Typography>
+      </Box>
+      
+      {[
+        ['C', '⌫', '/', '*'],
+        ['7', '8', '9', '-'],
+        ['4', '5', '6', '+'],
+        ['1', '2', '3', '='],
+        ['0', '.', '(', ')']
+      ].map((row, rowIndex) => (
+        <Box key={rowIndex} sx={{ display: 'flex', gap: 1, mb: 1 }}>
+          {row.map((btn) => (
+            <Button
+              key={btn}
+              onClick={(e) => {
+                e.preventDefault();
+                handleCalculatorInput(btn);
+              }}
+              sx={{
+                flex: btn === '0' ? 2 : 1,
+                minHeight: 45,
+                background: btn === '=' ? 'linear-gradient(45deg, #00b894, #00a085)' : 
+                           ['C', '⌫'].includes(btn) ? 'linear-gradient(45deg, #e17055, #d63031)' :
+                           ['+', '-', '*', '/'].includes(btn) ? 'linear-gradient(45deg, #667eea, #764ba2)' :
+                           'rgba(255,255,255,0.1)',
+                color: 'white',
+                fontWeight: 'bold',
+                '&:hover': {
+                  background: btn === '=' ? 'linear-gradient(45deg, #00a085, #009075)' : 
+                             ['C', '⌫'].includes(btn) ? 'linear-gradient(45deg, #d63031, #c92a2a)' :
+                             ['+', '-', '*', '/'].includes(btn) ? 'linear-gradient(45deg, #5a6fd8, #6a4190)' :
+                             'rgba(255,255,255,0.2)'
+                }
+              }}
+            >
+              {btn}
+            </Button>
+          ))}
+        </Box>
+      ))}
+    </Box>
+  );
+
   // Variants para animaciones
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -140,6 +362,122 @@ function Dashboard() {
     },
     tap: { scale: 0.95 }
   };
+
+  // Cargar preferencias al iniciar
+  useEffect(() => {
+    const preferences = storageService.getUserPreferences();
+    setUserPreferences(preferences);
+    setAutoRefresh(preferences.autoRefresh);
+    setRefreshInterval(preferences.refreshInterval);
+    
+    // Cargar datos en cache si existen
+    loadCachedData();
+    
+    // Cargar datos frescos
+    loadAllData();
+  }, []);
+
+  // Auto-refresh
+  useEffect(() => {
+    if (!autoRefresh) return;
+
+    const interval = setInterval(() => {
+      loadAllData();
+    }, refreshInterval);
+
+    return () => clearInterval(interval);
+  }, [autoRefresh, refreshInterval]);
+
+  // Pomodoro timer
+  useEffect(() => {
+    if (!pomodoroActive || pomodoroTime <= 0) return;
+
+    const timer = setInterval(() => {
+      setPomodoroTime(prev => {
+        if (prev <= 1) {
+          setPomodoroActive(false);
+          toast.success('¡Pomodoro completado! 🍅');
+          return 25 * 60;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [pomodoroActive, pomodoroTime]);
+
+  // Rotación de frases
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentQuote(prev => (prev + 1) % 4);
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Cargar datos en cache
+  const loadCachedData = async () => {
+    try {
+      const cachedData = await storageService.getDashboardData();
+      if (cachedData) {
+        setWeatherData(cachedData.weather);
+        setCryptoData(cachedData.crypto || []);
+        setNewsData(cachedData.news || []);
+        setQuoteData(cachedData.quotes);
+        setLastUpdate(new Date(cachedData.lastUpdated));
+      }
+    } catch (error) {
+      console.error('Error cargando datos en cache:', error);
+    }
+  };
+
+  // Cargar todos los datos
+  const loadAllData = useCallback(async () => {
+    if (loading) return;
+    
+    setLoading(true);
+    
+    try {
+      const preferences = userPreferences || storageService.getUserPreferences();
+      
+      // Cargar todos los datos en paralelo
+      const [weather, crypto, news, quote] = await Promise.all([
+        apiService.getWeatherData(preferences.location),
+        apiService.getCryptoData(),
+        apiService.getNewsData(),
+        apiService.getMotivationalQuote()
+      ]);
+
+      // Actualizar estados
+      setWeatherData(weather);
+      setCryptoData(crypto);
+      setNewsData(news);
+      setQuoteData(quote);
+      setLastUpdate(new Date());
+
+      // Guardar en cache
+      await storageService.saveDashboardData({
+        weather,
+        crypto,
+        news,
+        quotes: quote,
+        stats: systemStats
+      });
+
+      // Analytics
+      storageService.saveAnalytics({
+        action: 'dashboard_refresh',
+        source: 'api_load'
+      });
+
+      toast.success('Datos actualizados correctamente 🚀');
+    } catch (error) {
+      console.error('Error cargando datos:', error);
+      toast.error('Error actualizando algunos datos');
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, userPreferences, systemStats]);
 
   return (
     <motion.div 
@@ -430,20 +768,22 @@ function Dashboard() {
               <h3><FaFire /> Efectos Geniales</h3>
               <div className="efecto-botones">
                 <Button 
-                  onClick={() => toast.custom((t) => (
-                    <div style={{
-                      background: 'linear-gradient(45deg, #667eea, #764ba2)',
-                      color: 'white',
-                      padding: '16px',
-                      borderRadius: '15px',
-                      display: 'flex',
-                      alignItems: 'center'
-                    }}>
-                      <FaHeart style={{ marginRight: '8px' }} />
-                      ¡Notificación personalizada! 
-                      <BsStars style={{ marginLeft: '8px' }} />
-                    </div>
-                  ))}
+                  onClick={() => {
+                    toast.custom((t) => (
+                      <div style={{
+                        background: 'linear-gradient(45deg, #667eea, #764ba2)',
+                        color: 'white',
+                        padding: '16px',
+                        borderRadius: '15px',
+                        display: 'flex',
+                        alignItems: 'center'
+                      }}>
+                        <FaHeart style={{ marginRight: '8px' }} />
+                        ¡Notificación personalizada! 
+                        <BsStars style={{ marginLeft: '8px' }} />
+                      </div>
+                    ));
+                  }}
                   variant="contained"
                   sx={{ margin: '5px' }}
                 >
@@ -537,6 +877,336 @@ function Dashboard() {
             </motion.div>
           </div>
         </motion.section>
+
+        {/* Nueva sección de widgets útiles */}
+        <motion.div
+          className="widgets-section"
+          data-aos="fade-up"
+          data-aos-delay="800"
+          style={{
+            marginTop: '3rem',
+            marginBottom: '2rem'
+          }}
+        >
+          <Typography 
+            variant="h4" 
+            style={{ 
+              textAlign: 'center', 
+              marginBottom: '2rem', 
+              background: 'linear-gradient(45deg, #667eea, #764ba2)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              fontWeight: 'bold'
+            }}
+          >
+            🛠️ Herramientas Útiles
+          </Typography>
+
+          <Grid container spacing={3}>
+            {/* Widget de Frase Motivacional */}
+            <Grid item xs={12} md={6}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="glass-card" style={{ minHeight: '200px' }}>
+                  <CardContent style={{ textAlign: 'center', padding: '2rem' }}>
+                    <motion.div
+                      key={currentQuote}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <Typography variant="h6" style={{ marginBottom: '1rem', color: '#ffd700' }}>
+                        💡 Frase del momento
+                      </Typography>
+                      <Typography variant="h6" style={{ fontStyle: 'italic', lineHeight: 1.6 }}>
+                        "{quotes[currentQuote]}"
+                      </Typography>
+                    </motion.div>
+                    
+                                         <Button
+                       variant="outlined"
+                       onClick={() => setCurrentQuote((prev) => (prev + 1) % quotes.length)}
+                       sx={{ 
+                         mt: 1, 
+                         borderColor: 'rgba(255,255,255,0.3)',
+                         color: 'white'
+                       }}
+                     >
+                       Nueva frase ✨
+                     </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+
+            {/* Widget del Clima */}
+            <Grid item xs={12} md={6}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="glass-card" style={{ minHeight: '200px' }}>
+                  <CardContent style={{ padding: '2rem' }}>
+                    <Typography variant="h6" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+                      🌤️ Clima en {weather.city}
+                    </Typography>
+                    
+                    <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <Box style={{ textAlign: 'center' }}>
+                        <Typography variant="h2" style={{ fontWeight: 'bold', color: '#667eea' }}>
+                          {weather.temperature}°
+                        </Typography>
+                        <Typography variant="body2" style={{ opacity: 0.8 }}>
+                          {weather.condition}
+                        </Typography>
+                      </Box>
+                      
+                      <Box style={{ textAlign: 'right' }}>
+                        <Typography variant="body2" style={{ marginBottom: '0.5rem' }}>
+                          💧 Humedad: {weather.humidity}%
+                        </Typography>
+                        <Typography variant="body2">
+                          💨 Viento: {weather.wind} km/h
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+
+            {/* Widget Pomodoro Timer */}
+            <Grid item xs={12} md={6}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="glass-card" style={{ minHeight: '250px' }}>
+                  <CardContent style={{ textAlign: 'center', padding: '2rem' }}>
+                    <Typography variant="h6" style={{ marginBottom: '1rem' }}>
+                      ⏱️ Pomodoro Timer
+                    </Typography>
+                    
+                    <Typography variant="body2" style={{ marginBottom: '1rem', opacity: 0.8 }}>
+                      Modo: {pomodoroType === 'work' ? '💼 Trabajo' : '☕ Descanso'}
+                    </Typography>
+                    
+                    <motion.div
+                      animate={{ scale: pomodoroActive ? [1, 1.1, 1] : 1 }}
+                      transition={{ duration: 1, repeat: pomodoroActive ? Infinity : 0 }}
+                    >
+                      <Typography 
+                        variant="h2" 
+                        style={{ 
+                          fontFamily: 'monospace', 
+                          fontWeight: 'bold',
+                          color: pomodoroType === 'work' ? '#e17055' : '#00b894',
+                          marginBottom: '1rem'
+                        }}
+                      >
+                        {formatTime(pomodoroTime)}
+                      </Typography>
+                    </motion.div>
+                    
+                    <Box style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                      <Button
+                        variant="contained"
+                        onClick={startPomodoro}
+                        style={{
+                          background: pomodoroActive ? 
+                            'linear-gradient(45deg, #e17055, #d63031)' : 
+                            'linear-gradient(45deg, #00b894, #00a085)',
+                          color: 'white'
+                        }}
+                      >
+                        {pomodoroActive ? '⏸️ Pausar' : '▶️ Iniciar'}
+                      </Button>
+                      
+                      <Button
+                        variant="outlined"
+                        onClick={resetPomodoro}
+                        style={{ 
+                          borderColor: 'rgba(255,255,255,0.3)',
+                          color: 'white'
+                        }}
+                      >
+                        🔄 Reset
+                      </Button>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+
+            {/* Widget Calculadora */}
+            <Grid item xs={12} md={6}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="glass-card" style={{ minHeight: '250px' }}>
+                  <CardContent style={{ padding: '1.5rem' }}>
+                    <Box style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                      <Typography variant="h6">
+                        🧮 Calculadora
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setShowCalculator(!showCalculator)}
+                        style={{ 
+                          borderColor: 'rgba(255,255,255,0.3)',
+                          color: 'white'
+                        }}
+                      >
+                        {showCalculator ? 'Ocultar' : 'Mostrar'}
+                      </Button>
+                    </Box>
+                    
+                    {showCalculator ? (
+                      <Calculator />
+                    ) : (
+                      <Box style={{ textAlign: 'center', padding: '2rem 0' }}>
+                        <Typography variant="body2" style={{ opacity: 0.7, marginBottom: '1rem' }}>
+                          Calculadora rápida para tus cálculos
+                        </Typography>
+                        <Button
+                          variant="contained"
+                          onClick={() => setShowCalculator(true)}
+                          style={{
+                            background: 'linear-gradient(45deg, #667eea, #764ba2)'
+                          }}
+                        >
+                          Abrir Calculadora
+                        </Button>
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+
+            {/* Widget Generador QR */}
+            <Grid item xs={12} md={6}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="glass-card" style={{ minHeight: '300px' }}>
+                  <CardContent style={{ padding: '1.5rem' }}>
+                    <Typography variant="h6" style={{ marginBottom: '1rem', textAlign: 'center' }}>
+                      📱 Generador QR
+                    </Typography>
+                    
+                    <TextField
+                      fullWidth
+                      label="Texto o URL"
+                      value={qrText}
+                      onChange={(e) => setQrText(e.target.value)}
+                      style={{ marginBottom: '1rem' }}
+                      InputProps={{
+                        style: { color: 'white' }
+                      }}
+                      InputLabelProps={{
+                        style: { color: 'rgba(255,255,255,0.7)' }
+                      }}
+                    />
+                    
+                    <Box style={{ marginBottom: '1rem' }}>
+                      <QRDisplay text={qrText} />
+                    </Box>
+                    
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      onClick={generateQR}
+                      style={{
+                        background: 'linear-gradient(45deg, #fd79a8, #e84393)'
+                      }}
+                    >
+                      Generar QR 📲
+                    </Button>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+
+            {/* Widget de Estadísticas del Sistema */}
+            <Grid item xs={12} md={6}>
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Card className="glass-card" style={{ minHeight: '300px' }}>
+                  <CardContent style={{ padding: '2rem' }}>
+                    <Typography variant="h6" style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                      📊 Resumen del Sistema
+                    </Typography>
+                    
+                    <Box style={{ marginBottom: '1rem' }}>
+                      <Typography variant="body2" style={{ marginBottom: '0.5rem' }}>
+                        Rendimiento General
+                      </Typography>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={87} 
+                        style={{ 
+                          height: 8, 
+                          borderRadius: 4,
+                          backgroundColor: 'rgba(255,255,255,0.1)'
+                        }}
+                      />
+                      <Typography variant="caption" style={{ opacity: 0.7 }}>
+                        87% - Excelente
+                      </Typography>
+                    </Box>
+                    
+                    <Box style={{ marginBottom: '1rem' }}>
+                      <Typography variant="body2" style={{ marginBottom: '0.5rem' }}>
+                        Uso de Memoria
+                      </Typography>
+                      <LinearProgress 
+                        variant="determinate" 
+                        value={64} 
+                        style={{ 
+                          height: 8, 
+                          borderRadius: 4,
+                          backgroundColor: 'rgba(255,255,255,0.1)'
+                        }}
+                      />
+                      <Typography variant="caption" style={{ opacity: 0.7 }}>
+                        64% - Normal
+                      </Typography>
+                    </Box>
+                    
+                    <Box style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1.5rem' }}>
+                      <Box style={{ textAlign: 'center' }}>
+                        <Typography variant="h6" style={{ color: '#00b894', fontWeight: 'bold' }}>
+                          {tareas.length}
+                        </Typography>
+                        <Typography variant="caption">Tareas</Typography>
+                      </Box>
+                      <Box style={{ textAlign: 'center' }}>
+                        <Typography variant="h6" style={{ color: '#667eea', fontWeight: 'bold' }}>
+                          {contador}
+                        </Typography>
+                        <Typography variant="caption">Contador</Typography>
+                      </Box>
+                      <Box style={{ textAlign: 'center' }}>
+                        <Typography variant="h6" style={{ color: '#ffd700', fontWeight: 'bold' }}>
+                          98%
+                        </Typography>
+                        <Typography variant="caption">Uptime</Typography>
+                      </Box>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            </Grid>
+          </Grid>
+        </motion.div>
       </main>
     </motion.div>
   );
