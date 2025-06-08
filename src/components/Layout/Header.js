@@ -13,7 +13,8 @@ import {
   Box,
   Switch,
   Tooltip,
-  Chip
+  Chip,
+  Button
 } from '@mui/material';
 import {
   Search as SearchIcon,
@@ -24,14 +25,16 @@ import {
   Menu as MenuIcon,
   Settings,
   ExitToApp,
-  Dashboard
+  Dashboard,
+  Login
 } from '@mui/icons-material';
 import { 
   FaRocket, FaBell, FaSearch, FaMoon, FaSun, 
-  FaUser, FaCog, FaSignOutAlt 
+  FaUser, FaCog, FaSignOutAlt, FaSignInAlt
 } from 'react-icons/fa';
 import { IoSparkles, IoThunderstorm } from 'react-icons/io5';
 import toast from 'react-hot-toast';
+import AuthModal from '../AuthModal';
 import './Header.css';
 
 const Header = ({ 
@@ -39,11 +42,13 @@ const Header = ({
   darkMode, 
   onToggleDarkMode,
   notifications = [],
-  user = { name: 'Usuario Pro', avatar: null }
+  user = null
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState(user);
 
   // Manejar búsqueda
   const handleSearch = (e) => {
@@ -88,6 +93,24 @@ const Header = ({
       }
     });
     handleCloseNotifications();
+  };
+
+  // Manejar autenticación exitosa
+  const handleAuthSuccess = (userData) => {
+    setCurrentUser(userData);
+    toast.success(`¡Bienvenido, ${userData.name}!`, {
+      duration: 4000,
+      icon: '🎉'
+    });
+  };
+
+  // Cerrar sesión
+  const handleLogout = () => {
+    setCurrentUser(null);
+    handleCloseUserMenu();
+    toast.success('Sesión cerrada correctamente', {
+      icon: '👋'
+    });
   };
 
   const mockNotifications = [
@@ -269,74 +292,105 @@ const Header = ({
             ))}
           </Menu>
 
-          {/* Avatar y menú de usuario */}
-          <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
-            <IconButton
-              size="large"
-              aria-label="account of current user"
-              aria-controls="menu-appbar"
-              aria-haspopup="true"
-              onClick={handleUserMenu}
-              color="inherit"
-              className="user-avatar"
-            >
-              <Avatar 
-                sx={{ 
-                  background: 'linear-gradient(45deg, #ff9ff3, #f368e0)',
-                  width: 40,
-                  height: 40,
-                  border: '2px solid rgba(255,255,255,0.3)'
+          {/* Usuario autenticado o botón de login */}
+          {currentUser ? (
+            <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+              <IconButton
+                size="large"
+                onClick={handleUserMenu}
+                color="inherit"
+                className="user-avatar"
+              >
+                <Avatar 
+                  src={currentUser.avatar}
+                  sx={{ 
+                    background: 'linear-gradient(45deg, #ff9ff3, #f368e0)',
+                    width: 40,
+                    height: 40,
+                    border: '2px solid rgba(255,255,255,0.3)'
+                  }}
+                >
+                  <FaUser />
+                </Avatar>
+              </IconButton>
+            </motion.div>
+          ) : (
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button
+                variant="contained"
+                onClick={() => setAuthModalOpen(true)}
+                startIcon={<FaSignInAlt />}
+                sx={{
+                  background: 'linear-gradient(45deg, #ff6b6b, #ee5a52)',
+                  borderRadius: '25px',
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  px: 3,
+                  '&:hover': {
+                    background: 'linear-gradient(45deg, #ee5a52, #e55347)',
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 20px rgba(238, 90, 82, 0.4)'
+                  }
                 }}
               >
-                <FaUser />
-              </Avatar>
-            </IconButton>
-          </motion.div>
+                Iniciar Sesión
+              </Button>
+            </motion.div>
+          )}
 
           {/* Menú de usuario */}
-          <Menu
-            id="menu-appbar"
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'bottom',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={Boolean(anchorEl)}
-            onClose={handleCloseUserMenu}
-            PaperProps={{
-              sx: {
-                background: darkMode 
-                  ? 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)'
-                  : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
-                backdropFilter: 'blur(20px)',
-                border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
-                borderRadius: '15px',
-                minWidth: '200px'
-              }
-            }}
-          >
-            <MenuItem disabled sx={{ fontWeight: 600 }}>
-              <FaUser style={{ marginRight: '8px' }} />
-              {user.name}
-            </MenuItem>
-            <MenuItem onClick={handleCloseUserMenu}>
-              <Dashboard sx={{ mr: 1 }} />
-              Dashboard
-            </MenuItem>
-            <MenuItem onClick={handleCloseUserMenu}>
-              <FaCog style={{ marginRight: '8px' }} />
-              Configuración
-            </MenuItem>
-            <MenuItem onClick={handleCloseUserMenu}>
-              <FaSignOutAlt style={{ marginRight: '8px' }} />
-              Cerrar Sesión
-            </MenuItem>
-          </Menu>
+          {currentUser && (
+            <Menu
+              id="menu-appbar"
+              anchorEl={anchorEl}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              keepMounted
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              open={Boolean(anchorEl)}
+              onClose={handleCloseUserMenu}
+              PaperProps={{
+                sx: {
+                  background: darkMode 
+                    ? 'linear-gradient(135deg, #2d3748 0%, #1a202c 100%)'
+                    : 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.9) 100%)',
+                  backdropFilter: 'blur(20px)',
+                  border: `1px solid ${darkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'}`,
+                  borderRadius: '15px',
+                  minWidth: '200px'
+                }
+              }}
+            >
+              <MenuItem disabled sx={{ fontWeight: 600 }}>
+                <FaUser style={{ marginRight: '8px' }} />
+                {currentUser.name}
+              </MenuItem>
+              <MenuItem onClick={handleCloseUserMenu}>
+                <Dashboard sx={{ mr: 1 }} />
+                Dashboard
+              </MenuItem>
+              <MenuItem onClick={handleCloseUserMenu}>
+                <FaCog style={{ marginRight: '8px' }} />
+                Configuración
+              </MenuItem>
+              <MenuItem onClick={handleLogout}>
+                <FaSignOutAlt style={{ marginRight: '8px' }} />
+                Cerrar Sesión
+              </MenuItem>
+            </Menu>
+          )}
+
+          {/* Modal de autenticación */}
+          <AuthModal
+            open={authModalOpen}
+            onClose={() => setAuthModalOpen(false)}
+            onAuthSuccess={handleAuthSuccess}
+          />
         </Toolbar>
       </AppBar>
     </motion.div>

@@ -71,6 +71,33 @@ const Sidebar = ({
       description: 'Vista general'
     },
     {
+      text: 'Crypto Dashboard',
+      reactIcon: IoTrendingUp,
+      path: '/crypto',
+      color: '#f7931a',
+      description: 'Criptomonedas en tiempo real',
+      badge: '₿',
+      isNew: true
+    },
+    {
+      text: 'Portfolio Crypto',
+      reactIcon: BsCollection,
+      path: '/portfolio',
+      color: '#9b59b6',
+      description: 'Tu portfolio personal',
+      badge: '💰',
+      isNew: true
+    },
+    {
+      text: 'Noticias Crypto',
+      reactIcon: IoNotifications,
+      path: '/news',
+      color: '#e17055',
+      description: 'Últimas noticias del mercado',
+      badge: '📰',
+      isNew: true
+    },
+    {
       text: 'Perfil',
       reactIcon: FaUser,
       path: '/profile',
